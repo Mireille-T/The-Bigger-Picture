@@ -20,9 +20,17 @@
 	"background": {
 		"service_worker": "eventPage.js"
 	},
+	"content_scripts":[
+		{
+			"matches": ["*://*/*"],
+			"js": ["content.js"]
+		}
+	],
 	"permissions": [
 		"activeTab",
-		"contextMenus"
+		"contextMenus",
+		"scripting",
+		"tabs"
 	],
 	"host_permissions": [
 	],
