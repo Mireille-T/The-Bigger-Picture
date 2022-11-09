@@ -21,7 +21,8 @@
 		"service_worker": "eventPage.js"
 	},
 	"permissions": [
-		"activeTab"
+		"activeTab",
+		"contextMenus"
 	],
 	"host_permissions": [
 	],
