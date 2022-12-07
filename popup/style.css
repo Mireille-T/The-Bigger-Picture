@@ -1,17 +1,64 @@
-/* Insert CSS for your popup */
-body {
-    width: 300px;
+:root {
+    --col-pri: rgba(155, 81, 224, 1);
+    --col-pri-light: rgb(195, 137, 250);
 }
 
+body {
+    width: 250px;
+    padding: 12px 25px 12px 25px;
+    margin: 0;
+    font-family: 'Roboto', Calibri, sans-serif;
+    font-weight: 400;
+    font-size: 14px;
+}
+
+hr {
+    border: none;
+    background-color: rgba(228, 228, 228, 1);
+    height: 2px;
+    width: 200px;
+    margin: 0px;
+}
+
+/*alto-section*/
+#alto-section {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+}
+
+#alto-name {
+    font-family: 'Oxygen', Helvetica, Arial, sans-serif;
+    font-weight: 700;
+    font-size: 40px;
+    color: var(--col-pri);
+    padding: 0;
+    margin: 0;
+}
+
+#alto-section img {
+    width: 40px;
+}
+
+
+/*Toggle styles*/
 .toggle {
     display: flex;
     justify-content: space-between;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     align-items: center;
     position: relative;
-    margin-bottom: 1em;
+    text-align: left;
+    margin: 18px 0px 18px 0px;
     cursor: pointer;
-    gap: 1ch;
+}
+
+.toggle p {
+    width: 120px;
+    margin: 0;
 }
 
 .toggle-input {
@@ -22,19 +69,20 @@ body {
 }
 
 .toggle-display {
-    --offset: 0.25em;
-    --diameter: 1.8em;
+    --offset: 3px;
+    --diameter: 17.5px;
     display: inline-flex;
     align-items: center;
     justify-content: space-around;
     box-sizing: content-box;
-    width: calc(var(--diameter) * 2 + var(--offset) * 2);
-    height: calc(var(--diameter) + var(--offset) * 2);
+    width: 50px;
+    height: 22.5px;
     border: 0.1em solid rgb(0 0 0 / 0.2);
     position: relative;
     border-radius: 100vw;
-    background-color: #fbe4e2;
+    background-color: #e74c3c;
     transition: 250ms;
+    box-shadow: inset 0px 6px 8px 3px rgba(0, 0, 0, 0.1);
 }
 
 .toggle-display::before {
@@ -46,12 +94,12 @@ body {
     box-sizing: border-box;
     width: var(--diameter);
     height: var(--diameter);
-    border: 0.1em solid rgb(0 0 0 / 0.2);
     border-radius: 50%;
-    background-color: white;
-    transform: translate(0, -50%);
+    background-color: rgba(255, 255, 255, 1);
+    transform: translate(calc(-50px + var(--diameter) + calc(2 * var(--offset))), -50%);
     will-change: transform;
     transition: inherit;
+    filter: drop-shadow(-2px 1px 6px rgba(0, 0, 0, 0.25));
 }
 
 
@@ -70,12 +118,7 @@ body {
 
 .toggle[aria-pressed="true"] .toggle-display,
 .toggle-input:checked+.toggle-display {
-    background-color: #e3f5eb;
-}
-
-.toggle[aria-pressed="true"] .toggle-display::before,
-.toggle-input:checked+.toggle-display::before {
-    transform: translate(100%, -50%);
+    background-color: #219653;
 }
 
 [dir="rtl"] .toggle-display::before {
@@ -85,7 +128,7 @@ body {
 
 [dir="rtl"] .toggle[aria-pressed="true"]+.toggle-display::before,
 [dir="rtl"] .toggle-input:checked+.toggle-display::before {
-    transform: translate(-100%, -50%);
+    transform: translate(0, -50%);
 }
 
 .toggle-icon {
@@ -99,16 +142,94 @@ body {
 }
 
 .toggle-icon-cross {
-    color: #e74c3c;
+    color: #FFFFFF;
     font-size: 85%;
 }
 
 .toggle-icon-checkmark {
-    color: #1fb978;
+    color: #FFFFFF;
 }
 
 *,
 ::before,
 ::after {
     box-sizing: border-box;
+}
+
+/*Language dropdown style*/
+#language-dropdown {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    margin: 18px 0px 18px 0px;
+    justify-content: space-between;
+    align-items: center;
+}
+
+#languages {
+    font-family: 'Roboto', Calibri, sans-serif;
+    font-weight: 700;
+    font-size: 12px;
+    border: none;
+    border-radius: 2px;
+    background-color: #e7e9f3;
+    padding: 4px;
+}
+
+#languages option {
+    font-family: 'Roboto', Calibri, sans-serif;
+    font-weight: 400;
+    font-size: 12px;
+    border: none;
+    border-radius: 0px;
+    padding: 4px;
+}
+
+/*Button styles*/
+#change-btn {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    gap: 1ch;
+    justify-content: center;
+    align-items: flex-start;
+    margin: 18px 0px 6px 0px;
+}
+
+#change-btn button {
+    font-family: 'Roboto', Calibri, sans-serif;
+    font-weight: 400;
+    font-size: 14px;
+    padding: 6px;
+    text-align: center;
+    flex-grow: 100;
+    border-radius: 2px;
+    cursor: pointer;
+    position: relative;
+    height: 36px;
+}
+
+#change-btn button:active {
+    top: 2px;
+}
+
+#save-btn {
+    background-color: var(--col-pri);
+    color:rgba(255, 255, 255, 1);
+    border: none;
+}
+
+#save-btn:hover {
+    background-color: var(--col-pri-light);
+}
+
+#revert-btn {
+    background-color: #FFFFFF;
+    color: var(--col-pri);
+    border: 2px solid var(--col-pri);
+}
+
+#revert-btn:hover {
+    color: var(--col-pri-light);
+    border: 2px solid var(--col-pri-light);
 }
