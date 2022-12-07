@@ -22,9 +22,17 @@ var config = { attributes: true, childList: false, subtree: true }
 chrome.runtime.sendMessage({ todo: "showPageAction" });
 
 window.addEventListener('load', (event) => {
-    // On page load, start tracking for DOM changes (in case of lazy-loading) and do an initial scan for images
-    observer.observe(document.querySelector('html'), config);
-    scanPageForImages();
+    // On page load, check user's saved settings
+    chrome.storage.sync.get("settings", function (result) {
+        if (result.settings.lazyload == undefined || result.settings.lazyload) {
+            // if lazyload is enabled, start tracking for DOM changes
+            observer.observe(document.querySelector('html'), config);
+        }
+        if (result.settings.autogen == undefined || result.settings.autogen) {
+            // if auto-gen is enabled, do an initial scan for images
+            scanPageForImages();
+        }
+    });
 });
 
 function scanPageForImages() {
