@@ -1,0 +1,43 @@
+trigger:
+- master
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+steps:
+- task: UsePythonVersion@0
+  displayName: "Setting python version to 3.6 as required by functions"
+  inputs:
+    versionSpec: '3.6'
+    architecture: 'x64'
+- bash: |
+    if [ -f extensions.csproj ]
+    then
+        dotnet build extensions.csproj --output ./bin
+    fi
+    python3.6 -m venv worker_venv
+    source worker_venv/bin/activate
+    pip3.6 install setuptools
+    pip3.6 install -r requirements.txt
+
+- task: SonarQubePrepare@4
+  inputs:
+    SonarQube: 'SonarQube'
+    scannerMode: 'CLI'
+    configMode: 'manual'
+    cliProjectKey: 'HelloWorldPythonApp'
+    cliProjectName: 'HelloWorldPythonApp'
+    cliSources: '.'
+  
+- task: SonarQubeAnalyze@4
+
+- task: SonarQubePublish@4
+  inputs:
+    pollingTimeoutSec: '300'
+
+- task: ArchiveFiles@2
+  inputs:
+    rootFolderOrFile: '$(System.DefaultWorkingDirectory)'
+    includeRootFolder: false
+
+- task: PublishBuildArtifacts@1
