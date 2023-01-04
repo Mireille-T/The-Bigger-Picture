@@ -19,6 +19,6 @@ function revertSettings() {
         // If result is null, use default values
         document.getElementById("auto-gen-toggle").checked = (result.settings.autogen != undefined) ? result.settings.autogen : true;
         document.getElementById("lazy-load-toggle").checked = (result.settings.lazyload != undefined) ? result.settings.lazyload : true;
-        document.getElementById("languages").value = (result.settings.language != undefined) ? result.settings.language : "en-us";
+        document.getElementById("languages").value = (result.settings.language != undefined) ? result.settings.language : "en";
     });
 }
