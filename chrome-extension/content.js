@@ -47,11 +47,11 @@ async function scanPageForImages(limit = FILTERED_IMAGE_COUNT) {
       allImages[i].width > FILTERED_IMAGE_WIDTH &&
       !imagesSrcSet.has(currentImageSrc)
     ) {
+      imagesSrcSet.add(currentImageSrc);
       image_caption = await getImageCaption(currentImageSrc);
       allImages[i].alt = image_caption;
       console.log(image_caption);
       console.log(allImages[i]);
-      imagesSrcSet.add(currentImageSrc);
       filteredImageCount++;
     }
   }
