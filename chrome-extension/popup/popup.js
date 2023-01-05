@@ -17,8 +17,22 @@ function saveSettings() {
 function revertSettings() {
     chrome.storage.sync.get("settings", function (result) {
         // If result is null, use default values
-        document.getElementById("auto-gen-toggle").checked = (result.settings.autogen != undefined) ? result.settings.autogen : true;
-        document.getElementById("lazy-load-toggle").checked = (result.settings.lazyload != undefined) ? result.settings.lazyload : true;
-        document.getElementById("languages").value = (result.settings.language != undefined) ? result.settings.language : "en";
+        try {
+            document.getElementById("auto-gen-toggle").checked = result.settings.autogen;
+        } catch (error) {
+            document.getElementById("auto-gen-toggle").checked = true;
+        }
+
+        try {
+            document.getElementById("lazy-load-toggle").checked = result.settings.lazyload;
+        } catch (error) {
+            document.getElementById("lazy-load-toggle").checked = true;
+        }
+
+        try {
+            document.getElementById("languages").value = result.settings.language;
+        } catch (error) {
+            document.getElementById("languages").value = "en";
+        }
     });
 }
