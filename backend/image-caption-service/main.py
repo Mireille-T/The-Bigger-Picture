@@ -38,7 +38,7 @@ def GetImageCaption(image_source, language=None):
         if not language or language == 'en':
             return result
         elif result:
-            translation = TranslateText(result.get('result', ''))
+            translation = TranslateText(result.get('result', ''), language)
             return {'result': translation, 'confidence': result.get('confidence', 0)}
         
     except Exception as ex:
@@ -61,7 +61,7 @@ def AnalyzeImage(image_file):
     for caption in analysis.description.captions:
         return {"result": caption.text, "confidence": caption.confidence}
 
-def TranslateText(text):
+def TranslateText(text, language):
     load_dotenv()
     key = os.getenv('TRANSLATION_SERVICE_KEY')
     endpoint = os.getenv('TRANSLATION_SERVICE_ENDPOINT')
@@ -71,7 +71,7 @@ def TranslateText(text):
     params = {
         'api-version': '3.0',
         'from': 'en',
-        'to': ['it']
+        'to': [language]
     }
 
     headers = {
