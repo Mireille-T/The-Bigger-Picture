@@ -1,4 +1,6 @@
 # chrome-extension-template
+![favicon-128x128](https://user-images.githubusercontent.com/58629614/211460652-ccfcf7be-0f83-4170-9404-0a23475a3a07.png)
+
 To install the backend image-caption-service locally, follow these steps:
 
 1. Run the command pipenv install to install the necessary dependencies for the project.
