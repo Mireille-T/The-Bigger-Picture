@@ -20,12 +20,14 @@ function ensureSendMessage(tabId, message, callback) {
 
 chrome.runtime.onInstalled.addListener(function () {
   chrome.contextMenus.create({
-    title: "Generate alt text for all images",
+    title: "Generate alt text for image",
     contexts: ["all"],
-    id: "alto-all",
+    id: "alto-generate-alt-text",
   });
 });
 
 chrome.contextMenus.onClicked.addListener(function (info, tab) {
-  ensureSendMessage(tab.id, { id: "alto-all" });
-});
+  if (info.menuItemId == "alto-generate-alt-text") {
+    ensureSendMessage(tab.id, { id: "alto-generate-alt-text", src: info.srcUrl });
+  }
+})
