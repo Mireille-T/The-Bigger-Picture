@@ -41,42 +41,41 @@ window.addEventListener("load", (event) => {
 
 async function startObserver() {
   const result = await getChromeSettings();
-  const lazyload = result?.settings?.lazyload || true;
+  const lazyload = result?.settings?.lazyload ?? true;
   if (lazyload) {
     // On page load, start tracking for DOM changes (in case of lazy-loading) and do an initial scan for images
-  observer.observe(document.querySelector("html"), config);
+    observer.observe(document.querySelector("html"), config);
   }
 }
 
 async function scanPageForImages(limit = FILTERED_IMAGE_COUNT) {
   const result = await getChromeSettings();
-  const autogen = result?.settings?.autogen || true;
+  const autogen = result?.settings?.autogen ?? true;
   if (autogen) {
     var allImages = document.querySelectorAll("img");
+    for (var i = 0; i < allImages.length; i++) {
+      if (filteredImageCount >= limit) {
+        // if threshold has been hit, disconnect the observer to save resources
+        observer?.disconnect();
+        break;
+      }
 
-  for (var i = 0; i < allImages.length; i++) {
-    if (filteredImageCount >= limit) {
-      // if threshold has been hit, disconnect the observer to save resources
-      observer?.disconnect();
-      break;
+      const currentImageSrc = allImages[i].currentSrc;
+
+      if (
+        (allImages[i].alt == null ||
+          allImages[i].alt.length == 0 ||
+          allImages[i].alt == "Image") &&
+        allImages[i].height > FILTERED_IMAGE_HEIGHT &&
+        allImages[i].width > FILTERED_IMAGE_WIDTH &&
+        !imagesSrcSet.has(currentImageSrc)
+      ) {
+        imagesSrcSet.add(currentImageSrc);
+        image_caption = await getImageCaption(currentImageSrc);
+        allImages[i].alt = image_caption;
+        filteredImageCount++;
+      }
     }
-
-    const currentImageSrc = allImages[i].currentSrc;
-
-    if (
-      (allImages[i].alt == null ||
-        allImages[i].alt.length == 0 ||
-        allImages[i].alt == "Image") &&
-      allImages[i].height > FILTERED_IMAGE_HEIGHT &&
-      allImages[i].width > FILTERED_IMAGE_WIDTH &&
-      !imagesSrcSet.has(currentImageSrc)
-    ) {
-      imagesSrcSet.add(currentImageSrc);
-      image_caption = await getImageCaption(currentImageSrc);
-      allImages[i].alt = image_caption;
-      filteredImageCount++;
-    }
-  }
   }
 }
 
