@@ -7,7 +7,11 @@ function ensureSendMessage(tabId, message, callback) {
       // Content script ready
       chrome.tabs.sendMessage(tabId, message, callback);
     } else {
-      chrome.tabs.executeScript(tabId, { file: "content.js" }, function () {
+      
+      chrome.scripting.executeScript({
+        target: {tabId: tabId, allFrames: true},
+        files: ['content.js'],
+        }, function () {
         if (chrome.runtime.lastError) {
           console.error(chrome.runtime.lastError);
           throw Error("Unable to inject script into tab " + tabId);

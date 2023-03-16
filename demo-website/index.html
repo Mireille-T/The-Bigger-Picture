@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>alto Demo Website</title>
+    <style>
+        body {
+            margin: 0;
+        }
+
+        .image-grid {
+            display: grid;
+            width: 100%;
+            height: 100vh;
+            grid-template-columns: 50% 50%;
+            grid-template-rows: 50% 50%;
+        }
+
+        .image-grid img {
+            object-fit: cover;
+            width: 100%;
+            height: 100%;
+            object-position: 0% 0%;
+        }
+
+        #golden-gate {
+            object-position: 0% 50%;
+        }
+    </style>
+</head>
+<body>
+    <div class="image-grid">
+        <img src="https://th.bing.com/th/id/R.edc3d298eee20c12a5bdb84bb26bfe4e?rik=%2bcr49PmUKxxibQ&pid=ImgRaw&r=0">
+        <img src="https://th.bing.com/th/id/R.f47176d96ae63678e60f43ed74913a9a?rik=Iey1QvxIz0QmXw&pid=ImgRaw&r=0">
+        <img id="golden-gate" src="https://images.pexels.com/photos/3144852/pexels-photo-3144852.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2">
+        <img src="https://i.stack.imgur.com/qsWBr.png">
+    </div>
+</body>
+</html>
