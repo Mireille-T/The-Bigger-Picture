@@ -91,7 +91,7 @@ async function getImageCaption(image_source) {
   const result = await getChromeSettings();
   const language = result?.settings?.language || "en";
   if (!language || !image_source) return;
-  const AZURE_SERVICE_URL = `https://image-caption-service.azurewebsites.net/api/image-caption-service?image=${encodeURIComponent(
+  const AZURE_SERVICE_URL = `https://alto-api.azurewebsites.net/api/image-caption-service?image=${encodeURIComponent(
     image_source
   )}&language=${encodeURIComponent(language)}`;
   try {
