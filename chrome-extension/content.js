@@ -7,6 +7,7 @@ const FILTERED_IMAGE_WIDTH = 50;
 const imagesSrcSet = new Set();
 
 var filteredImageCount = 0;
+var contextMenuEl;
 
 // Detects changes in DOM (for lazy-loading purposes)
 var observer = new MutationObserver(function (mutations) {
@@ -21,38 +22,59 @@ var config = { attributes: true, childList: false, subtree: true };
 
 chrome.runtime.sendMessage({ todo: "showPageAction" });
 
+document.addEventListener("contextmenu", function(event){
+  contextMenuEl = event.target;
+}, true);
+
+chrome.runtime.onMessage.addListener( // for communication between content.js other JavaScript files
+    async function (message, sender, sendResponse) {
+      if (message.id != null && message.id == "alto-generate-alt-text" && message.src != null) {
+        contextMenuEl.alt = await getImageCaption(message.src);
+      }
+    }
+);
+
 window.addEventListener("load", (event) => {
-  // On page load, start tracking for DOM changes (in case of lazy-loading) and do an initial scan for images
-  observer.observe(document.querySelector("html"), config);
+  startObserver();
   scanPageForImages();
 });
 
+async function startObserver() {
+  const result = await getChromeSettings();
+  const lazyload = result?.settings?.lazyload ?? true;
+  if (lazyload) {
+    // On page load, start tracking for DOM changes (in case of lazy-loading) and do an initial scan for images
+    observer.observe(document.querySelector("html"), config);
+  }
+}
+
 async function scanPageForImages(limit = FILTERED_IMAGE_COUNT) {
-  var allImages = document.querySelectorAll("img");
+  const result = await getChromeSettings();
+  const autogen = result?.settings?.autogen ?? true;
+  if (autogen) {
+    var allImages = document.querySelectorAll("img");
+    for (var i = 0; i < allImages.length; i++) {
+      if (filteredImageCount >= limit) {
+        // if threshold has been hit, disconnect the observer to save resources
+        observer?.disconnect();
+        break;
+      }
 
-  for (var i = 0; i < allImages.length; i++) {
-    if (filteredImageCount >= limit) {
-      // if threshold has been hit, disconnect the observer to save resources
-      observer?.disconnect();
-      break;
-    }
+      const currentImageSrc = allImages[i].currentSrc;
 
-    const currentImageSrc = allImages[i].currentSrc;
-
-    if (
-      (allImages[i].alt == null ||
-        allImages[i].alt.length == 0 ||
-        allImages[i].alt == "Image") &&
-      allImages[i].height > FILTERED_IMAGE_HEIGHT &&
-      allImages[i].width > FILTERED_IMAGE_WIDTH &&
-      !imagesSrcSet.has(currentImageSrc)
-    ) {
-      imagesSrcSet.add(currentImageSrc);
-      image_caption = await getImageCaption(currentImageSrc);
-      allImages[i].alt = image_caption;
-      console.log(image_caption);
-      console.log(allImages[i]);
-      filteredImageCount++;
+      if (
+        (allImages[i].alt == null ||
+          allImages[i].alt.length == 0 ||
+          allImages[i].alt == "Image") &&
+        allImages[i].height > FILTERED_IMAGE_HEIGHT &&
+        allImages[i].width > FILTERED_IMAGE_WIDTH &&
+        !imagesSrcSet.has(currentImageSrc)
+      ) {
+        imagesSrcSet.add(currentImageSrc);
+        image_caption = await getImageCaption(currentImageSrc);
+        allImages[i].alt = image_caption;
+        filteredImageCount++;
+      }
     }
   }
 }
@@ -87,6 +109,4 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
     sendResponse({ pong: true });
     return;
   }
-  scanPageForImages(1000);
-  console.log("Alto: Generate for all images clicked");
 });

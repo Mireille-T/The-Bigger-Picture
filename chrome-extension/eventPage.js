@@ -7,7 +7,11 @@ function ensureSendMessage(tabId, message, callback) {
       // Content script ready
       chrome.tabs.sendMessage(tabId, message, callback);
     } else {
-      chrome.tabs.executeScript(tabId, { file: "content.js" }, function () {
+      
+      chrome.scripting.executeScript({
+        target: {tabId: tabId, allFrames: true},
+        files: ['content.js'],
+        }, function () {
         if (chrome.runtime.lastError) {
           console.error(chrome.runtime.lastError);
           throw Error("Unable to inject script into tab " + tabId);
@@ -20,12 +24,14 @@ function ensureSendMessage(tabId, message, callback) {
 
 chrome.runtime.onInstalled.addListener(function () {
   chrome.contextMenus.create({
-    title: "Generate alt text for all images",
+    title: "Generate alt text for image",
     contexts: ["all"],
-    id: "alto-all",
+    id: "alto-generate-alt-text",
   });
 });
 
 chrome.contextMenus.onClicked.addListener(function (info, tab) {
-  ensureSendMessage(tab.id, { id: "alto-all" });
-});
+  if (info.menuItemId == "alto-generate-alt-text") {
+    ensureSendMessage(tab.id, { id: "alto-generate-alt-text", src: info.srcUrl });
+  }
+})
