@@ -14,92 +14,155 @@ import requests, uuid, json
 from azure.cognitiveservices.vision.computervision import ComputerVisionClient
 from azure.cognitiveservices.vision.computervision.models import VisualFeatureTypes
 from msrest.authentication import CognitiveServicesCredentials
+from azure.cosmos import CosmosClient
+import os
+import uuid
 
-def GetImageCaption(image_source, language=None):
+
+def save_image_caption_to_cosmosdb(container, image_url, caption, confidence, language):
+    item = {
+        "id": str(uuid.uuid4()),
+        "partitionKey": "ImageCaptions",
+        "image_url": image_url,
+        "caption": caption,
+        "confidence": confidence,
+        "language": language,
+    }
+    container.create_item(item)
+
+
+def find_image_caption(container, image_url, language):
+    query = f"SELECT * FROM c WHERE c.image_url = '{image_url}' AND c.language = '{language}'"
+    items = list(container.query_items(query, enable_cross_partition_query=True))
+
+    if len(items) > 0:
+        return items[0]
+    else:
+        return None
+
+
+def initialize_cosmosdb_client():
+    cosmosdb_account_uri = os.getenv("COSMOSDB_ACCOUNT_URI")
+    cosmosdb_account_key = os.getenv("COSMOSDB_ACCOUNT_KEY")
+    cosmosdb_database_name = os.getenv("COSMOSDB_DATABASE_NAME")
+    cosmosdb_container_name = os.getenv("COSMOSDB_CONTAINER_NAME")
+
+    client = CosmosClient(cosmosdb_account_uri, cosmosdb_account_key)
+
+    # Create the database if it doesn't exist
+    database = client.create_database_if_not_exists(cosmosdb_database_name)
+
+    # Create the container if it doesn't exist
+    container = database.create_container_if_not_exists(
+        cosmosdb_container_name, partition_key="/id"
+    )
+
+    return container
+
+
+def GetImageCaption(image_source, language="en"):
     global cv_client
     try:
         # Get Configuration Settings
         load_dotenv()
-        cog_endpoint = os.getenv('COG_SERVICE_ENDPOINT')
-        cog_key = os.getenv('COG_SERVICE_KEY')
+        container = initialize_cosmosdb_client()
+        cog_endpoint = os.getenv("COG_SERVICE_ENDPOINT")
+        cog_key = os.getenv("COG_SERVICE_KEY")
 
+        # Check if image already exists
+        existing_caption = find_image_caption(container, image_source, language)
+        if existing_caption:
+            return {
+                "result": existing_caption["caption"],
+                "confidence": existing_caption["confidence"],
+            }
         # Get image
 
-        doc_path = '/tmp/image'
+        doc_path = "/tmp/image"
         urllib.request.urlretrieve(image_source, doc_path)
 
         # Authenticate Computer Vision client
-        credential = CognitiveServicesCredentials(cog_key) 
+        credential = CognitiveServicesCredentials(cog_key)
         cv_client = ComputerVisionClient(cog_endpoint, credential)
 
         # Analyze image
         result = AnalyzeImage(doc_path)
 
-        if not language or language == 'en':
-            return result
-        elif result:
-            translation = TranslateText(result.get('result', ''), language)
-            return {'result': translation, 'confidence': result.get('confidence', 0)}
-        
+        if not result:
+            return None
+        if language != "en":
+            translation = TranslateText(result.get("result", ""), language)
+            result = {"result": translation, "confidence": result.get("confidence", 0)}
+
+        if result:
+            save_image_caption_to_cosmosdb(
+                container,
+                image_source,
+                result["result"],
+                result["confidence"],
+                language,
+            )
+        return result
+
     except Exception as ex:
         print(ex)
 
+
 def AnalyzeImage(image_file):
     # Specify features to be retrieved
-    features = [VisualFeatureTypes.description,
-            VisualFeatureTypes.tags,
-            VisualFeatureTypes.categories,
-            VisualFeatureTypes.brands,
-            VisualFeatureTypes.objects,
-            VisualFeatureTypes.adult]
-    
+    features = [
+        VisualFeatureTypes.description,
+        VisualFeatureTypes.tags,
+        VisualFeatureTypes.categories,
+        VisualFeatureTypes.brands,
+        VisualFeatureTypes.objects,
+        VisualFeatureTypes.adult,
+    ]
+
     # Get image analysis opening file as rb for azure data analysis
     with open(image_file, mode="rb") as image_data:
-        analysis = cv_client.analyze_image_in_stream(image_data , features)
+        analysis = cv_client.analyze_image_in_stream(image_data, features)
 
     # Get image description
     for caption in analysis.description.captions:
         return {"result": caption.text, "confidence": caption.confidence}
 
+
 def TranslateText(text, language):
     load_dotenv()
-    key = os.getenv('TRANSLATION_SERVICE_KEY')
-    endpoint = os.getenv('TRANSLATION_SERVICE_ENDPOINT')
-    location = os.getenv('TRANSLATION_SERVICE_LOCATION')
-    constructed_url = endpoint + 'translate'
+    key = os.getenv("TRANSLATION_SERVICE_KEY")
+    endpoint = os.getenv("TRANSLATION_SERVICE_ENDPOINT")
+    location = os.getenv("TRANSLATION_SERVICE_LOCATION")
+    constructed_url = endpoint + "translate"
 
-    params = {
-        'api-version': '3.0',
-        'from': 'en',
-        'to': [language]
-    }
+    params = {"api-version": "3.0", "from": "en", "to": [language]}
 
     headers = {
-        'Ocp-Apim-Subscription-Key': key,
-        'Ocp-Apim-Subscription-Region': location,
-        'Content-type': 'application/json',
-        'X-ClientTraceId': str(uuid.uuid4())
+        "Ocp-Apim-Subscription-Key": key,
+        "Ocp-Apim-Subscription-Region": location,
+        "Content-type": "application/json",
+        "X-ClientTraceId": str(uuid.uuid4()),
     }
 
-    body = [{
-        'text': text
-    }]
+    body = [{"text": text}]
 
     request = requests.post(constructed_url, params=params, headers=headers, json=body)
     response = request.json()
 
     if len(response) > 0:
-        translations = response[0].get('translations')
-        text = translations[0].get('text', '')
+        translations = response[0].get("translations")
+        text = translations[0].get("text", "")
         return text
-    return ''
-        
+    return ""
+
+
 def GetThumbnail(image_file):
-    print('Generating thumbnail')
+    print("Generating thumbnail")
+
 
 def RunMain():
-    image_source = ''
-    language = ''
+    image_source = ""
+    language = ""
 
     if len(sys.argv) > 2:
         image_source = sys.argv[1]
@@ -113,6 +176,7 @@ def RunMain():
     else:
         print("Provide an image URL to run")
         return
+
 
 if __name__ == "__main__":
     RunMain()

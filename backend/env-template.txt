@@ -1,0 +1,14 @@
+# Azure Cognitive Services
+COG_SERVICE_ENDPOINT=<your_cognitive_services_endpoint>
+COG_SERVICE_KEY=<your_cognitive_services_key>
+TRANSLATION_SERVICE_KEY=<your_translation_service_key>
+TRANSLATION_SERVICE_ENDPOINT=<your_translation_service_endpoint>
+TRANSLATION_SERVICE_LOCATION=<your_translation_service_location>
+
+# Azure Cosmos DB
+COSMOSDB_ACCOUNT_URI=<your_cosmosdb_account_uri>
+COSMOSDB_ACCOUNT_KEY=<your_cosmosdb_account_key>
+COSMOSDB_DATABASE_NAME=<your_cosmosdb_database_name>
+COSMOSDB_CONTAINER_NAME=<your_cosmosdb_container_name>
+
+# Remember to rename file to .env
