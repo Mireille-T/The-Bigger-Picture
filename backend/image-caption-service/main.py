@@ -1,7 +1,6 @@
 from dotenv import load_dotenv
 import os
 from array import array
-from PIL import Image, ImageDraw
 import sys
 import time
 from matplotlib import pyplot as plt
@@ -76,56 +75,69 @@ def GetImageCaption(image_source, language="en"):
                 "result": existing_caption["caption"],
                 "confidence": existing_caption["confidence"],
             }
-        # Get image
-
-        doc_path = "/tmp/image"
-        urllib.request.urlretrieve(image_source, doc_path)
-
-        # Authenticate Computer Vision client
-        credential = CognitiveServicesCredentials(cog_key)
-        cv_client = ComputerVisionClient(cog_endpoint, credential)
 
         # Analyze image
-        result = AnalyzeImage(doc_path)
+        features = "caption,read"
+        model_version = "latest"
+        language = "en"
+        api_version = "2023-02-01-preview"
+        gender_neutral_caption = "true"
 
-        if not result:
+        url = f"{cog_endpoint}/computervision/imageanalysis:analyze?features={features}&model-version={model_version}&language={language}&api-version={api_version}&gender-neutral-caption={gender_neutral_caption}"
+
+        payload = {"url": image_source}
+        headers = {
+            "Ocp-Apim-Subscription-Key": cog_key,
+            "Content-Type": "application/json",
+        }
+        response = requests.request(
+            "POST", url, headers=headers, data=json.dumps(payload)
+        )
+
+        if not response:
             return None
-        if language != "en":
-            translation = TranslateText(result.get("result", ""), language)
-            result = {"result": translation, "confidence": result.get("confidence", 0)}
 
-        if result:
+        response = response.json()
+        if not response:
+            return None
+
+        caption_result = response.get("captionResult")
+        caption_text, caption_confidence = (
+            caption_result["text"],
+            caption_result["confidence"],
+        )
+
+        read_result = response.get("readResult")
+        text_result = read_result["content"]
+
+        alt_text = caption_text
+        if alt_text and len(text_result) > 10:
+            alt_text = f"{caption_text}: {text_result}"
+        alt_text = alt_text.replace("\n", " ")
+
+        if language != "en":
+            translation = TranslateText(alt_text, language)
+            result = {
+                "result": translation,
+                "confidence": caption_confidence,
+            }
+            return result
+
+        if caption_result:
             save_image_caption_to_cosmosdb(
                 container,
                 image_source,
-                result["result"],
-                result["confidence"],
+                alt_text,
+                caption_confidence,
                 language,
             )
-        return result
+        return {
+            "result": alt_text,
+            "confidence": caption_confidence,
+        }
 
     except Exception as ex:
         print(ex)
-
-
-def AnalyzeImage(image_file):
-    # Specify features to be retrieved
-    features = [
-        VisualFeatureTypes.description,
-        VisualFeatureTypes.tags,
-        VisualFeatureTypes.categories,
-        VisualFeatureTypes.brands,
-        VisualFeatureTypes.objects,
-        VisualFeatureTypes.adult,
-    ]
-
-    # Get image analysis opening file as rb for azure data analysis
-    with open(image_file, mode="rb") as image_data:
-        analysis = cv_client.analyze_image_in_stream(image_data, features)
-
-    # Get image description
-    for caption in analysis.description.captions:
-        return {"result": caption.text, "confidence": caption.confidence}
 
 
 def TranslateText(text, language):
