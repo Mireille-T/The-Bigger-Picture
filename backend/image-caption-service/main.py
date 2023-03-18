@@ -112,7 +112,7 @@ def GetImageCaption(image_source, language="en"):
 
         alt_text = caption_text
         if alt_text and len(text_result) > 10:
-            alt_text = f"{caption_text}: {text_result}"
+            alt_text = f"{caption_text}, text in image: {text_result}"
         alt_text = alt_text.replace("\n", " ")
 
         if language != "en":
