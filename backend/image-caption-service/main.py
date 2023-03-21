@@ -79,11 +79,11 @@ def GetImageCaption(image_source, language="en"):
         # Analyze image
         features = "caption,read"
         model_version = "latest"
-        language = "en"
+        caption_language = "en"
         api_version = "2023-02-01-preview"
         gender_neutral_caption = "true"
 
-        url = f"{cog_endpoint}/computervision/imageanalysis:analyze?features={features}&model-version={model_version}&language={language}&api-version={api_version}&gender-neutral-caption={gender_neutral_caption}"
+        url = f"{cog_endpoint}/computervision/imageanalysis:analyze?features={features}&model-version={model_version}&language={caption_language}&api-version={api_version}&gender-neutral-caption={gender_neutral_caption}"
 
         payload = {"url": image_source}
         headers = {
@@ -166,10 +166,6 @@ def TranslateText(text, language):
         text = translations[0].get("text", "")
         return text
     return ""
-
-
-def GetThumbnail(image_file):
-    print("Generating thumbnail")
 
 
 def RunMain():

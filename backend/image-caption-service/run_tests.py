@@ -35,6 +35,14 @@ class TestStringMethods(unittest.TestCase):
             self.fail("No caption generated")
         self.assertEqual(result.get("result"), expected_result)
 
+    def test_caption_book_spanish(self):
+        img_src = "https://cdn.elearningindustry.com/wp-content/uploads/2016/05/top-10-books-every-college-student-read-1024x640.jpeg"
+        result = GetImageCaption(img_src, "es")
+        expected_result = "Una pila de libros con un marcador"
+        if not result:
+            self.fail("No caption generated")
+        self.assertEqual(result.get("result"), expected_result)
+
     def test_caption_flowers(self):
         img_src = "https://flowersandfancies.imgix.net/images/itemVariation/EndlessSunflowersMedium-220421110614.jpg?auto=format&w=375&h=450&fit=crop"
         result = GetImageCaption(img_src)
