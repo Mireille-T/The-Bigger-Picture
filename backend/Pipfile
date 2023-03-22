@@ -11,6 +11,7 @@ numpy = "*"
 azure-cognitiveservices-vision-computervision = "*"
 msrest = "*"
 uuid = "*"
+azure-cosmos = "*"
 
 [dev-packages]
 
